@@ -1,0 +1,6 @@
+customer_id,data_used_gb,calls_made,revenue_inr,region,date
+1001,5.2,25,180.0,Delhi,2025-09-25
+1002,6.5,40,280.0,Mumbai,2025-09-25
+1003,7.8,32,210.0,Chennai,2025-09-25
+1004,15.6,55,195.0,Delhi,2025-09-25
+1005,3.4,18,120.0,Kolkata,2025-09-25
