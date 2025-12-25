@@ -1,0 +1,47 @@
+2025-11-20 10:35:02,936 [INFO] Extracted 8 rows from 6_telecom_raw.csv
+2025-11-20 10:35:02,963 [INFO] Removed 1 duplicate rows
+2025-11-20 10:35:02,981 [WARNING] Found 2 bad timestamps; filling with default date
+2025-11-20 10:35:02,991 [INFO] Filled missing values in call_minutes with mean=321.67
+2025-11-20 10:35:02,991 [INFO] Filled missing values in data_gb with mean=36.75
+2025-11-20 10:35:03,025 [INFO] Transformed data to 7 aggregated customer rows
+2025-11-20 10:44:41,724 [INFO] Created role-based views for junior and manager roles.
+2025-11-20 10:49:09,243 [INFO] Loaded 7 rows into usage_summary table
+2025-11-20 10:49:19,035 [INFO] Enriched usage_summary with fake PII fields.
+2025-11-20 10:49:25,862 [INFO] Created role-based views for junior and manager roles.
+2025-11-20 10:51:32,744 [INFO] Extracted 8 rows from 6_telecom_raw.csv
+2025-11-20 10:51:32,746 [INFO] Removed 1 duplicate rows
+2025-11-20 10:51:32,749 [WARNING] Found 2 bad timestamps; filling with default date
+2025-11-20 10:51:32,752 [INFO] Filled missing values in call_minutes with mean=321.67
+2025-11-20 10:51:32,753 [INFO] Filled missing values in data_gb with mean=36.75
+2025-11-20 10:51:32,769 [INFO] Transformed data to 7 aggregated customer rows
+2025-11-20 10:51:32,830 [INFO] Loaded 7 rows into usage_summary table
+2025-11-20 10:51:32,889 [INFO] Enriched usage_summary with fake PII fields.
+2025-11-20 10:51:32,909 [INFO] Created role-based views for junior and manager roles.
+2025-11-20 10:54:49,960 [INFO] Extracted 8 rows from 6_telecom_raw.csv
+2025-11-20 10:54:49,964 [INFO] Removed 1 duplicate rows
+2025-11-20 10:54:49,968 [WARNING] Found 2 bad timestamps; filling with default date
+2025-11-20 10:54:49,969 [INFO] Filled missing values in call_minutes with mean=321.67
+2025-11-20 10:54:49,970 [INFO] Filled missing values in data_gb with mean=36.75
+2025-11-20 10:54:49,985 [INFO] Transformed data to 7 aggregated customer rows
+2025-11-20 10:54:52,156 [INFO] Loaded 7 rows into usage_summary table
+2025-11-20 10:54:54,022 [INFO] Enriched usage_summary with fake PII fields.
+2025-11-20 10:54:55,732 [INFO] Created role-based views for junior and manager roles.
+2025-11-20 10:58:11,305 [INFO] Starting ETL pipeline run...
+2025-11-20 10:58:11,306 [ERROR] ETL pipeline run FAILED: telecom_raw.csv not found in current folder.
+Traceback (most recent call last):
+  File "C:\Users\nisht\AppData\Local\Temp\ipykernel_19776\68185408.py", line 12, in run_pipeline
+    df_raw = extract_raw_data("telecom_raw.csv")
+  File "C:\Users\nisht\AppData\Local\Temp\ipykernel_19776\2555921199.py", line 7, in extract_raw_data
+    raise FileNotFoundError(f"{csv_path} not found in current folder.")
+FileNotFoundError: telecom_raw.csv not found in current folder.
+2025-11-20 10:59:03,328 [INFO] Starting ETL pipeline run...
+2025-11-20 10:59:03,332 [INFO] Extracted 8 rows from 6_telecom_raw.csv
+2025-11-20 10:59:03,334 [INFO] Removed 1 duplicate rows
+2025-11-20 10:59:03,337 [WARNING] Found 2 bad timestamps; filling with default date
+2025-11-20 10:59:03,339 [INFO] Filled missing values in call_minutes with mean=321.67
+2025-11-20 10:59:03,339 [INFO] Filled missing values in data_gb with mean=36.75
+2025-11-20 10:59:03,354 [INFO] Transformed data to 7 aggregated customer rows
+2025-11-20 10:59:03,412 [INFO] Loaded 7 rows into usage_summary table
+2025-11-20 10:59:03,432 [INFO] Enriched usage_summary with fake PII fields.
+2025-11-20 10:59:03,434 [INFO] Created role-based views for junior and manager roles.
+2025-11-20 10:59:03,434 [INFO] ETL pipeline run completed successfully.

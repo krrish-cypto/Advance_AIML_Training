@@ -1,0 +1,8 @@
+customer_id,region,total_call_minutes,total_data_gb,last_activity,heavy_user
+1001,Delhi,120.0,10.5,2025-09-25 10:30:00,False
+1002,Mumbai,450.0,55.0,2025-09-25 11:00:00,True
+1003,Chennai,200.0,20.0,2025-09-25 00:00:00,False
+1004,Delhi,600.0,70.0,2025-09-25 00:00:00,True
+1005,Kolkata,50.0,5.0,2025-09-25 12:00:00,False
+1006,Hyderabad,321.6666666666667,60.0,2025-09-25 13:00:00,True
+1007,Delhi,510.0,36.75,2025-09-25 14:00:00,True
