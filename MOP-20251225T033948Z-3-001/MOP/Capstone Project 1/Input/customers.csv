@@ -1,0 +1,11 @@
+customer_id,name,plan_type,region
+1001,Asha Mehta,Prepaid,Delhi
+1002,Ravi Kumar,Postpaid,Mumbai
+1003,Sneha Rao,Prepaid,Chennai
+1004,Manoj Singh,Postpaid,Delhi
+1005,Divya Jain,Prepaid,Kolkata
+1006,Aditya Verma,Prepaid,Pune
+1007,Neha Patel,Postpaid,Bengaluru
+1008,Pooja Sharma,Prepaid,Hyderabad
+1009,Rohan Das,Prepaid,Jaipur
+1010,Simran Kaur,Postpaid,Chandigarh

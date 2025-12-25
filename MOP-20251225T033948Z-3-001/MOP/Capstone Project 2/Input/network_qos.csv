@@ -1,0 +1,6 @@
+region,signal_strength,latency_ms,throughput_mbps,outages
+Delhi,-70,25,35,2
+Mumbai,-65,20,42,1
+Chennai,-75,28,32,3
+Kolkata,-72,30,30,2
+Hyderabad,-68,22,40,1
