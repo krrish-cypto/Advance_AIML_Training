@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BSNL Telecom Analytics & Churn Prediction</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM (Specific Versions for Stability) -->
+    <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+    
+    <!-- Prop Types (Required for some UMD builds) -->
+    <script src="https://unpkg.com/prop-types/prop-types.min.js"></script>
+    
+    <!-- Recharts (Specific Version compatible with UMD) -->
+    <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Fade In Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-in { animation: fadeIn 0.5s ease-out forwards; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useMemo, useEffect } = React;
+        
+        // Ensure Recharts is loaded before destructuring
+        const { 
+            LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area 
+        } = window.Recharts || {};
+
+        if (!window.Recharts) {
+            console.error("Recharts failed to load.");
+            document.getElementById('root').innerHTML = '<div class="p-8 text-red-500">Error: Library dependency failed to load. Please check your internet connection and refresh.</div>';
+        }
+
+        // --- ICONS (SVG Replacements for Lucide-React) ---
+        const IconBase = ({ children, size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                {children}
+            </svg>
+        );
+
+        const LayoutDashboard = (props) => (
+            <IconBase {...props}><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></IconBase>
+        );
+        const Users = (props) => (
+            <IconBase {...props}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></IconBase>
+        );
+        const Activity = (props) => (
+            <IconBase {...props}><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></IconBase>
+        );
+        const AlertTriangle = (props) => (
+            <IconBase {...props}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></IconBase>
+        );
+        const Search = (props) => (
+            <IconBase {...props}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></IconBase>
+        );
+        const TrendingUp = (props) => (
+            <IconBase {...props}><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></IconBase>
+        );
+        const TrendingDown = (props) => (
+            <IconBase {...props}><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></IconBase>
+        );
+        const Phone = (props) => (
+            <IconBase {...props}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.12 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></IconBase>
+        );
+        const Wifi = (props) => (
+            <IconBase {...props}><path d="M12 20h.01"/><path d="M2 8.82a15 15 0 0 1 20 0"/><path d="M5 12.859a10 10 0 0 1 14 0"/><path d="M8.5 16.429a5 5 0 0 1 7 0"/></IconBase>
+        );
+        const IndianRupee = (props) => (
+            <IconBase {...props}><path d="M6 3h12"/><path d="M6 8h12"/><path d="m6 13 8.5 10"/><path d="M6 13h3"/><path d="M9 13c6.667 0 6.667-10 0-10"/></IconBase>
+        );
+        const Menu = (props) => (
+            <IconBase {...props}><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></IconBase>
+        );
+        const X = (props) => (
+            <IconBase {...props}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></IconBase>
+        );
+        const BrainCircuit = (props) => (
+            <IconBase {...props}><path d="M12 4.5a2.5 2.5 0 0 0-4.96-.46 2.5 2.5 0 0 0-1.98 3 2.5 2.5 0 0 0-1.32 3 2.5 2.5 0 0 0 .38 3.22A2.5 2.5 0 0 0 3.34 17a2.5 2.5 0 0 0 2.32 2.94 2.5 2.5 0 0 0 2.62-1.63 2.5 2.5 0 0 0 2.72-.8 2.5 2.5 0 0 0 3 0 2.5 2.5 0 0 0 2.72.8 2.5 2.5 0 0 0 2.62 1.63A2.5 2.5 0 0 0 21.66 17a2.5 2.5 0 0 0-1.2-3.76 2.5 2.5 0 0 0 .38-3.22 2.5 2.5 0 0 0-1.32-3 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 12 4.5Z"/><path d="M12 12v6"/><path d="M12 18h6a2 2 0 0 1 2 2v1"/><path d="M12 8v4"/><path d="M20 10h-2"/><path d="M4 10h2"/></IconBase>
+        );
+        const Database = (props) => (
+            <IconBase {...props}><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></IconBase>
+        );
+
+        // --- MOCK DATA ---
+        const generateMockData = () => {
+            const regions = ['North', 'South', 'East', 'West'];
+            const plans = ['Basic', 'Standard', 'Premium', 'Unlimited'];
+            const data = [];
+
+            for (let i = 1; i <= 50; i++) {
+                const plan = plans[Math.floor(Math.random() * plans.length)];
+                const usage = Math.floor(Math.random() * 50) + 5; 
+                // Pricing adjusted for INR
+                const bill = plan === 'Unlimited' ? 1499 : (plan === 'Premium' ? 999 : (plan === 'Standard' ? 599 : 299));
+                const complaints = Math.floor(Math.random() * 5);
+                const tenure = Math.floor(Math.random() * 60) + 1;
+                
+                const riskFactor = (complaints * 15) + (bill > 1000 ? 10 : 0) - (tenure * 0.5); 
+                const churnRisk = Math.min(Math.max(riskFactor, 0), 100);
+
+                data.push({
+                    id: `CUST-${1000 + i}`,
+                    region: regions[Math.floor(Math.random() * regions.length)],
+                    plan,
+                    dataUsage: usage,
+                    monthlyBill: bill + (Math.random() * 50 - 25), 
+                    complaints,
+                    tenure,
+                    churnRisk: Math.round(churnRisk),
+                    status: churnRisk > 60 ? 'At Risk' : 'Safe'
+                });
+            }
+            return data;
+        };
+
+        const MOCK_DATA = generateMockData();
+
+        const REVENUE_DATA = [
+            { month: 'Jan', revenue: 3600000, churn: 120 },
+            { month: 'Feb', revenue: 4160000, churn: 110 },
+            { month: 'Mar', revenue: 3840000, churn: 140 },
+            { month: 'Apr', revenue: 4880000, churn: 90 },
+            { month: 'May', revenue: 4400000, churn: 105 },
+            { month: 'Jun', revenue: 5360000, churn: 85 },
+        ];
+
+        const COMPLAINT_DATA = [
+            { name: 'Network Coverage', value: 45 },
+            { name: 'Billing Issues', value: 25 },
+            { name: 'Data Speed', value: 20 },
+            { name: 'Customer Service', value: 10 },
+        ];
+
+        const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+
+        // --- COMPONENTS ---
+
+        const StatCard = ({ title, value, change, icon: Icon, trend }) => (
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                <div className="flex justify-between items-start">
+                    <div>
+                        <p className="text-sm font-medium text-slate-500">{title}</p>
+                        <h3 className="text-2xl font-bold text-slate-800 mt-1">{value}</h3>
+                    </div>
+                    <div className={`p-2 rounded-lg ${trend === 'up' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
+                        <Icon size={20} />
+                    </div>
+                </div>
+                <div className="mt-4 flex items-center text-sm">
+                    <span className={`font-medium ${trend === 'up' ? 'text-green-600' : 'text-red-600'} flex items-center`}>
+                        {trend === 'up' ? <TrendingUp size={14} className="mr-1" /> : <TrendingDown size={14} className="mr-1" />}
+                        {change}
+                    </span>
+                    <span className="text-slate-400 ml-2">vs last month</span>
+                </div>
+            </div>
+        );
+
+        const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
+            const menuItems = [
+                { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+                { id: 'customers', label: 'Customer Data', icon: Database },
+                { id: 'prediction', label: 'Churn Predictor', icon: BrainCircuit },
+                { id: 'complaints', label: 'Network & QoS', icon: Activity },
+            ];
+
+            return (
+                <React.Fragment>
+                    {/* Mobile Overlay */}
+                    {isOpen && (
+                        <div 
+                            className="fixed inset-0 bg-black/50 z-20 lg:hidden"
+                            onClick={() => setIsOpen(false)}
+                        />
+                    )}
+                    
+                    {/* Sidebar */}
+                    <div className={`fixed lg:static inset-y-0 left-0 z-30 w-64 bg-slate-900 text-white transform transition-transform duration-200 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} flex flex-col`}>
+                        <div className="p-6 border-b border-slate-800">
+                            <div className="flex items-center gap-2 font-bold text-xl">
+                                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                                    <Wifi size={18} />
+                                </div>
+                                <span>Telco<span className="text-blue-400">Analytics</span></span>
+                            </div>
+                            <p className="text-xs text-slate-400 mt-2">Based on Capstone Training</p>
+                        </div>
+
+                        <nav className="flex-1 p-4 space-y-2">
+                            {menuItems.map((item) => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => {
+                                        setActiveTab(item.id);
+                                        setIsOpen(false);
+                                    }}
+                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                                        activeTab === item.id 
+                                            ? 'bg-blue-600 text-white' 
+                                            : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                                    }`}
+                                >
+                                    <item.icon size={20} />
+                                    <span className="font-medium">{item.label}</span>
+                                </button>
+                            ))}
+                        </nav>
+
+                        <div className="p-4 border-t border-slate-800">
+                            <div className="bg-slate-800 rounded-lg p-4">
+                                <h4 className="text-sm font-semibold mb-1">System Status</h4>
+                                <div className="flex items-center gap-2 text-xs text-green-400">
+                                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                                    <span>ETL Pipeline Active</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </React.Fragment>
+            );
+        };
+
+        const DashboardView = () => (
+            <div className="space-y-6 animate-in">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <StatCard 
+                        title="Total Revenue" 
+                        value="₹2.62 Cr" 
+                        change="+12.5%" 
+                        icon={IndianRupee} 
+                        trend="up" 
+                    />
+                    <StatCard 
+                        title="Active Customers" 
+                        value="14,205" 
+                        change="+3.2%" 
+                        icon={Users} 
+                        trend="up" 
+                    />
+                    <StatCard 
+                        title="Churn Rate" 
+                        value="2.4%" 
+                        change="-0.8%" 
+                        icon={AlertTriangle} 
+                        trend="down" 
+                    />
+                    <StatCard 
+                        title="Avg Data Usage" 
+                        value="18.5 GB" 
+                        change="+5.1%" 
+                        icon={Activity} 
+                        trend="up" 
+                    />
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                        <h3 className="text-lg font-bold text-slate-800 mb-4">Revenue & Churn Trend</h3>
+                        <div className="h-80">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={REVENUE_DATA}>
+                                    <defs>
+                                        <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#2563eb" stopOpacity={0.8}/>
+                                            <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                    <XAxis dataKey="month" />
+                                    <YAxis 
+                                        yAxisId="left" 
+                                        tickFormatter={(value) => `₹${(value / 100000).toFixed(0)}L`}
+                                    />
+                                    <YAxis yAxisId="right" orientation="right" />
+                                    <Tooltip 
+                                        formatter={(value, name) => [
+                                            name === 'Revenue (₹)' ? `₹${value.toLocaleString()}` : value, 
+                                            name
+                                        ]}
+                                    />
+                                    <Legend />
+                                    <Area 
+                                        yAxisId="left"
+                                        type="monotone" 
+                                        dataKey="revenue" 
+                                        stroke="#2563eb" 
+                                        fillOpacity={1} 
+                                        fill="url(#colorRev)" 
+                                        name="Revenue (₹)"
+                                    />
+                                    <Line 
+                                        yAxisId="right"
+                                        type="monotone" 
+                                        dataKey="churn" 
+                                        stroke="#ef4444" 
+                                        strokeWidth={2}
+                                        name="Churn Count"
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                        <h3 className="text-lg font-bold text-slate-800 mb-4">Complaint Categories</h3>
+                        <div className="h-80">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={COMPLAINT_DATA}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={60}
+                                        outerRadius={100}
+                                        fill="#8884d8"
+                                        paddingAngle={5}
+                                        dataKey="value"
+                                        label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                    >
+                                        {COMPLAINT_DATA.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+
+        const CustomerTableView = () => {
+            const [searchTerm, setSearchTerm] = useState('');
+            
+            const filteredData = MOCK_DATA.filter(c => 
+                c.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                c.plan.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                c.status.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            return (
+                <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden animate-in">
+                    <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <h3 className="text-lg font-bold text-slate-800">Customer Database</h3>
+                        <div className="relative w-full sm:w-64">
+                            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">
+                                <Search size={18} />
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="Search by ID, Plan..."
+                                className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                    
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead className="bg-slate-50 text-slate-600 text-sm">
+                                <tr>
+                                    <th className="p-4 font-semibold">Customer ID</th>
+                                    <th className="p-4 font-semibold">Region</th>
+                                    <th className="p-4 font-semibold">Current Plan</th>
+                                    <th className="p-4 font-semibold">Data Usage</th>
+                                    <th className="p-4 font-semibold">Monthly Bill</th>
+                                    <th className="p-4 font-semibold">Churn Risk</th>
+                                    <th className="p-4 font-semibold">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {filteredData.slice(0, 10).map((customer) => (
+                                    <tr key={customer.id} className="hover:bg-slate-50 transition-colors">
+                                        <td className="p-4 font-medium text-slate-900">{customer.id}</td>
+                                        <td className="p-4 text-slate-600">{customer.region}</td>
+                                        <td className="p-4 text-slate-600">
+                                            <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-semibold">
+                                                {customer.plan}
+                                            </span>
+                                        </td>
+                                        <td className="p-4 text-slate-600">{customer.dataUsage} GB</td>
+                                        <td className="p-4 text-slate-600">₹{customer.monthlyBill.toFixed(2)}</td>
+                                        <td className="p-4">
+                                            <div className="w-24 bg-slate-200 rounded-full h-2">
+                                                <div 
+                                                    className={`h-2 rounded-full ${
+                                                        customer.churnRisk > 70 ? 'bg-red-500' : 
+                                                        customer.churnRisk > 40 ? 'bg-yellow-500' : 'bg-green-500'
+                                                    }`}
+                                                    style={{ width: `${customer.churnRisk}%` }}
+                                                />
+                                            </div>
+                                            <span className="text-xs text-slate-500 mt-1 block">{customer.churnRisk}% Score</span>
+                                        </td>
+                                        <td className="p-4">
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                                customer.status === 'At Risk' 
+                                                    ? 'bg-red-100 text-red-800' 
+                                                    : 'bg-green-100 text-green-800'
+                                            }`}>
+                                                {customer.status}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className="p-4 border-t border-slate-100 text-center text-sm text-slate-500">
+                        Showing top 10 of {filteredData.length} records
+                    </div>
+                </div>
+            );
+        };
+
+        const ChurnPredictionView = () => {
+            const [formData, setFormData] = useState({
+                monthlyBill: 599,
+                dataUsage: 10,
+                complaints: 0,
+                contractType: '1 Year',
+                tenure: 12
+            });
+            
+            const [prediction, setPrediction] = useState(null);
+            const [loading, setLoading] = useState(false);
+
+            const handlePredict = () => {
+                setLoading(true);
+                // Simulation of ML Model Logic (Decision Tree Logic Simulation)
+                setTimeout(() => {
+                    const { monthlyBill, complaints, tenure } = formData;
+                    let score = 20; // Base score
+                    
+                    score += complaints * 15; // High impact
+                    score += (monthlyBill > 1000 ? 20 : 0);
+                    score -= tenure * 0.8; // Longer tenure reduces risk
+                    
+                    const finalScore = Math.min(Math.max(score, 5), 98);
+                    
+                    setPrediction({
+                        score: Math.round(finalScore),
+                        label: finalScore > 60 ? 'High Risk' : (finalScore > 30 ? 'Medium Risk' : 'Low Risk'),
+                        factors: [
+                            complaints > 2 ? 'High number of complaints' : null,
+                            monthlyBill > 1200 ? 'High monthly bill' : null,
+                            tenure < 6 ? 'New customer' : null
+                        ].filter(Boolean)
+                    });
+                    setLoading(false);
+                }, 1500);
+            };
+
+            return (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in">
+                    {/* Input Form */}
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-3 bg-purple-100 text-purple-600 rounded-lg">
+                                <BrainCircuit size={24} />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-800">Churn Simulator</h3>
+                                <p className="text-sm text-slate-500">Test parameters based on MOP 3 Exercise</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Monthly Bill (₹)</label>
+                                <input 
+                                    type="range" 
+                                    min="0" 
+                                    max="5000" 
+                                    value={formData.monthlyBill} 
+                                    onChange={(e) => setFormData({...formData, monthlyBill: parseInt(e.target.value)})}
+                                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                                />
+                                <div className="flex justify-between text-xs text-slate-500 mt-1">
+                                    <span>₹0</span>
+                                    <span className="font-bold text-blue-600">₹{formData.monthlyBill}</span>
+                                    <span>₹5000</span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Customer Service Calls (Last 30 days)</label>
+                                <div className="flex gap-2">
+                                    {[0, 1, 2, 3, 4, 5].map(num => (
+                                        <button
+                                            key={num}
+                                            onClick={() => setFormData({...formData, complaints: num})}
+                                            className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${
+                                                formData.complaints === num 
+                                                    ? 'bg-purple-600 text-white' 
+                                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                            }`}
+                                        >
+                                            {num}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Data Usage (GB)</label>
+                                    <input 
+                                        type="number" 
+                                        value={formData.dataUsage}
+                                        onChange={(e) => setFormData({...formData, dataUsage: parseInt(e.target.value)})}
+                                        className="w-full p-2 border border-slate-300 rounded-md"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Tenure (Months)</label>
+                                    <input 
+                                        type="number" 
+                                        value={formData.tenure}
+                                        onChange={(e) => setFormData({...formData, tenure: parseInt(e.target.value)})}
+                                        className="w-full p-2 border border-slate-300 rounded-md"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Contract Type</label>
+                                <select 
+                                    className="w-full p-2 border border-slate-300 rounded-md"
+                                    value={formData.contractType}
+                                    onChange={(e) => setFormData({...formData, contractType: e.target.value})}
+                                >
+                                    <option>Month-to-Month</option>
+                                    <option>1 Year</option>
+                                    <option>2 Year</option>
+                                </select>
+                            </div>
+
+                            <button
+                                onClick={handlePredict}
+                                disabled={loading}
+                                className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2 mt-4"
+                            >
+                                {loading ? (
+                                    <React.Fragment>
+                                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                                        <span>Analyzing Model...</span>
+                                    </React.Fragment>
+                                ) : (
+                                    <React.Fragment>
+                                        <BrainCircuit size={18} />
+                                        <span>Run Prediction</span>
+                                    </React.Fragment>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Prediction Result */}
+                    <div className="flex flex-col justify-center">
+                        {prediction ? (
+                            <div className="bg-white p-8 rounded-xl shadow-md border border-slate-100 text-center animate-in">
+                                <h4 className="text-slate-500 font-medium mb-2">Churn Probability</h4>
+                                <div className="relative inline-flex items-center justify-center">
+                                    <svg className="w-40 h-40">
+                                        <circle
+                                            className="text-slate-200"
+                                            strokeWidth="10"
+                                            stroke="currentColor"
+                                            fill="transparent"
+                                            r="70"
+                                            cx="80"
+                                            cy="80"
+                                        />
+                                        <circle
+                                            className={`${
+                                                prediction.label === 'High Risk' ? 'text-red-500' : 
+                                                prediction.label === 'Medium Risk' ? 'text-yellow-500' : 'text-green-500'
+                                            }`}
+                                            strokeWidth="10"
+                                            strokeDasharray={440}
+                                            strokeDashoffset={440 - (440 * prediction.score) / 100}
+                                            strokeLinecap="round"
+                                            stroke="currentColor"
+                                            fill="transparent"
+                                            r="70"
+                                            cx="80"
+                                            cy="80"
+                                            style={{ transition: 'stroke-dashoffset 1s ease-in-out' }}
+                                        />
+                                    </svg>
+                                    <div className="absolute text-4xl font-bold text-slate-800">
+                                        {prediction.score}%
+                                    </div>
+                                </div>
+                                
+                                <h3 className={`text-2xl font-bold mt-4 ${
+                                    prediction.label === 'High Risk' ? 'text-red-600' : 
+                                    prediction.label === 'Medium Risk' ? 'text-yellow-600' : 'text-green-600'
+                                }`}>
+                                    {prediction.label}
+                                </h3>
+                                
+                                {prediction.factors.length > 0 && (
+                                    <div className="mt-6 text-left bg-slate-50 p-4 rounded-lg">
+                                        <p className="text-sm font-semibold text-slate-700 mb-2">Key Risk Factors:</p>
+                                        <ul className="space-y-1">
+                                            {prediction.factors.map((factor, idx) => (
+                                                <li key={idx} className="text-sm text-slate-600 flex items-center gap-2">
+                                                    <AlertTriangle size={14} className="text-orange-500" />
+                                                    {factor}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="h-full flex flex-col items-center justify-center text-slate-400 p-8 border-2 border-dashed border-slate-200 rounded-xl">
+                                <Activity size={48} className="mb-4 opacity-50" />
+                                <p className="text-lg font-medium">Ready to Analyze</p>
+                                <p className="text-sm text-center mt-2">Adjust the parameters on the left and click "Run Prediction" to see the Machine Learning model in action.</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const NetworkQoSView = () => (
+            <div className="space-y-6 animate-in">
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                    <h3 className="text-lg font-bold text-slate-800 mb-4">Network QoS vs Complaints</h3>
+                    <p className="text-sm text-slate-500 mb-6">Correlating signal strength (dBm) with customer complaint volume across regions.</p>
+                    
+                    <div className="h-80">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={[
+                                { region: 'North', complaints: 65, signal: 85 },
+                                { region: 'South', complaints: 40, signal: 92 },
+                                { region: 'East', complaints: 85, signal: 78 },
+                                { region: 'West', complaints: 55, signal: 88 },
+                            ]}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                <XAxis dataKey="region" />
+                                <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
+                                <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" />
+                                <Tooltip />
+                                <Legend />
+                                <Bar yAxisId="left" dataKey="complaints" name="Complaints" fill="#8884d8" radius={[4, 4, 0, 0]} />
+                                <Bar yAxisId="right" dataKey="signal" name="Signal Score (QoS)" fill="#82ca9d" radius={[4, 4, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="bg-red-50 p-4 rounded-xl border border-red-100">
+                        <h4 className="font-bold text-red-800 flex items-center gap-2">
+                            <AlertTriangle size={18} /> Critical Alerts
+                        </h4>
+                        <ul className="mt-3 space-y-2 text-sm text-red-700">
+                            <li>• East Region: High Latency detected ({'>'}150ms)</li>
+                            <li>• Cluster B: 5% Call Drop Rate spike</li>
+                        </ul>
+                    </div>
+                    <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                        <h4 className="font-bold text-blue-800 flex items-center gap-2">
+                            <Activity size={18} /> Maintenance
+                        </h4>
+                        <ul className="mt-3 space-y-2 text-sm text-blue-700">
+                            <li>• Tower 402: Scheduled for 2:00 AM</li>
+                            <li>• Fiber Cut: Resolving in Sector 4</li>
+                        </ul>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-xl border border-green-100">
+                        <h4 className="font-bold text-green-800 flex items-center gap-2">
+                            <TrendingUp size={18} /> Optimization
+                        </h4>
+                        <ul className="mt-3 space-y-2 text-sm text-green-700">
+                            <li>• 5G Rollout: 85% Complete in South</li>
+                            <li>• Bandwidth utilization stable at 65%</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        );
+
+        // --- MAIN APP ---
+
+        const App = () => {
+            const [activeTab, setActiveTab] = useState('dashboard');
+            const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+            const renderContent = () => {
+                switch (activeTab) {
+                    case 'dashboard': return <DashboardView />;
+                    case 'customers': return <CustomerTableView />;
+                    case 'prediction': return <ChurnPredictionView />;
+                    case 'complaints': return <NetworkQoSView />;
+                    default: return <DashboardView />;
+                }
+            };
+
+            return (
+                <div className="flex h-screen bg-slate-50 font-sans text-slate-900">
+                    <Sidebar 
+                        activeTab={activeTab} 
+                        setActiveTab={setActiveTab} 
+                        isOpen={isSidebarOpen} 
+                        setIsOpen={setIsSidebarOpen} 
+                    />
+                    
+                    <div className="flex-1 flex flex-col overflow-hidden">
+                        {/* Top Header */}
+                        <header className="bg-white h-16 border-b border-slate-200 flex items-center justify-between px-6 z-10">
+                            <div className="flex items-center gap-4">
+                                <button 
+                                    className="lg:hidden text-slate-500 hover:text-slate-800"
+                                    onClick={() => setIsSidebarOpen(true)}
+                                >
+                                    <Menu size={24} />
+                                </button>
+                                <h2 className="text-xl font-bold text-slate-800 capitalize">
+                                    {activeTab === 'prediction' ? 'Machine Learning Center' : activeTab.replace('-', ' ')}
+                                </h2>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <div className="hidden sm:flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-full">
+                                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                                    <span className="text-xs font-medium text-slate-600">BSNL Data Link Active</span>
+                                </div>
+                                <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold text-sm">
+                                    AD
+                                </div>
+                            </div>
+                        </header>
+
+                        {/* Main Content Scroll Area */}
+                        <main className="flex-1 overflow-y-auto p-4 lg:p-8">
+                            <div className="max-w-7xl mx-auto">
+                                {renderContent()}
+                            </div>
+                        </main>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
