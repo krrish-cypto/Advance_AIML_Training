@@ -462,12 +462,14 @@
             const handlePredict = async () => {
     setLoading(true);
     try {
-        // Send the slider data to your Python Flask server
-        const response = await fetch(PREDICT_ENDPOINT, {
+        // Use the relative path to point to your new Python backend
+        const response = await fetch('/api/predict', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
         });
+        
+        // ... rest of your existing code ...
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
