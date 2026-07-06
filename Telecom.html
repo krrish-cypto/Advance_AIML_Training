@@ -462,8 +462,8 @@
             const handlePredict = async () => {
     setLoading(true);
     try {
-        // Use the relative path to point to your new Python backend
-        const response = await fetch('/api/predict', {
+        // Replace this with your actual Render URL!
+        const response = await fetch('https://advance-aiml-training.onrender.com', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
