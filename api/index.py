@@ -6,7 +6,9 @@ from pathlib import Path
 
 # Vercel looks for this 'app' variable to start the serverless function
 app = Flask(__name__)
-CORS(app)
+# Replace 'YOUR_VERCEL_URL' with your actual Vercel project URL (e.g., 'https://my-telecom-project.vercel.app')
+# You can also use "*" to allow all, but it is less secure.
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # Dynamically find the model in the root directory
 MODEL_PATH = Path(__file__).resolve().parents[1] / "churn_decision_tree.joblib"
@@ -17,12 +19,9 @@ except Exception as exc:
     MODEL = None
     MODEL_ERROR = str(exc)
 
-@app.route('/api/predict', methods=['POST', 'OPTIONS'])
-def predict():
-    # Handle CORS preflight requests
-    if request.method == 'OPTIONS':
-        return jsonify({"ok": True}), 200
-
+@app.route('/', methods=['GET'])
+def health_check():
+    return "API is healthy!", 200
     if MODEL is None:
         return jsonify({"error": f"Model failed to load: {MODEL_ERROR}"}), 500
 
