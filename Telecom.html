@@ -42,6 +42,16 @@
     <script type="text/babel">
         const { useState, useMemo, useEffect } = React;
         
+        // ===== API CONFIGURATION =====
+        // Local Flask backend:
+        //   http://127.0.0.1:5000/predict
+        // Vercel deployment:
+        //   /api/predict
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const PREDICT_ENDPOINT = isLocal
+            ? 'http://127.0.0.1:5000/predict'
+            : '/api/predict';
+        
         // Ensure Recharts is loaded before destructuring
         const { 
             LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area 
@@ -204,7 +214,8 @@
                                 </div>
                                 <span>Telco<span className="text-blue-400">Analytics</span></span>
                             </div>
-                            <p className="text-xs text-slate-400 mt-2">Based on Capstone Training</p>
+                            <p className="text-xs text-slate-400 mt-2">Built by Krishna Dubey</p>
+                            <p className="text-xs text-slate-500 mt-1">Capstone Training Project</p>
                         </div>
 
                         <nav className="flex-1 p-4 space-y-2">
@@ -448,32 +459,39 @@
             const [prediction, setPrediction] = useState(null);
             const [loading, setLoading] = useState(false);
 
-            const handlePredict = () => {
-                setLoading(true);
-                // Simulation of ML Model Logic (Decision Tree Logic Simulation)
-                setTimeout(() => {
-                    const { monthlyBill, complaints, tenure } = formData;
-                    let score = 20; // Base score
-                    
-                    score += complaints * 15; // High impact
-                    score += (monthlyBill > 1000 ? 20 : 0);
-                    score -= tenure * 0.8; // Longer tenure reduces risk
-                    
-                    const finalScore = Math.min(Math.max(score, 5), 98);
-                    
-                    setPrediction({
-                        score: Math.round(finalScore),
-                        label: finalScore > 60 ? 'High Risk' : (finalScore > 30 ? 'Medium Risk' : 'Low Risk'),
-                        factors: [
-                            complaints > 2 ? 'High number of complaints' : null,
-                            monthlyBill > 1200 ? 'High monthly bill' : null,
-                            tenure < 6 ? 'New customer' : null
-                        ].filter(Boolean)
-                    });
-                    setLoading(false);
-                }, 1500);
-            };
-
+            const handlePredict = async () => {
+    setLoading(true);
+    try {
+        // Send the slider data to your Python Flask server
+        const response = await fetch(PREDICT_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.error) {
+            console.error("Backend Error:", result.error);
+            alert("Error from AI Model: " + result.error);
+        } else {
+            // Update the UI with the real ML prediction from Python!
+            setPrediction({
+                score: result.score,
+                label: result.label,
+                factors: result.factors || []
+            });
+        }
+    } catch (error) {
+        console.error("Failed to connect to backend:", error);
+        alert("Could not connect to the Python server. Make sure app.py is running!");
+    }
+    setLoading(false);
+};
             return (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in">
                     {/* Input Form */}
@@ -726,7 +744,8 @@
             };
 
             return (
-                <div className="flex h-screen bg-slate-50 font-sans text-slate-900">
+                <div className="flex h-screen bg-slate-50 font-sans 
+                text-slate-900">
                     <Sidebar 
                         activeTab={activeTab} 
                         setActiveTab={setActiveTab} 
@@ -753,8 +772,8 @@
                                     <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                                     <span className="text-xs font-medium text-slate-600">BSNL Data Link Active</span>
                                 </div>
-                                <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold text-sm">
-                                    AD
+                                <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm" title="Krishna Dubey">
+                                    KD
                                 </div>
                             </div>
                         </header>
