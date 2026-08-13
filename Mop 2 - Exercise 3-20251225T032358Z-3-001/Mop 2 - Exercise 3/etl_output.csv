@@ -1,0 +1,7 @@
+customer_id,name,plan_type,join_date,region,complaint_id,category,description,created_at,status,is_open
+1001,Asha Mehta,Prepaid,2023-05-12,Delhi,NO-COMPLAINT,No Complaint,,2025-09-25 00:00:00,Resolved,False
+1002,Ravi Kumar,Postpaid,2022-12-20,Mumbai,CMP-001,Billing,Charged extra for data usage,2025-09-25 10:45:00,Open,True
+1002,Ravi Kumar,Postpaid,2022-12-20,Mumbai,CMP-004,Network,Slow 4G speed at night,2025-09-25 00:00:00,Open,True
+1003,Sneha Rao,Prepaid,2023-01-18,Chennai,CMP-005,Support,No response to complaint,2025-09-25 00:00:00,Open,True
+1004,Manoj Singh,Postpaid,2021-11-05,Delhi,CMP-002,Network,Frequent call drops in Delhi,2025-09-25 00:00:00,Open,True
+1005,Divya Jain,Prepaid,2023-03-28,Kolkata,CMP-003,Recharge,Recharge failed; amount deducted,2025-09-25 00:00:00,Closed,False

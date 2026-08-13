@@ -1,0 +1,6 @@
+region,data_gb,call_minutes,dropped_calls
+Delhi,250,300000,100
+Mumbai,270,290000,90
+Chennai,220,270000,120
+Kolkata,180,260000,130
+Hyderabad,260,275000,110

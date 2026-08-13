@@ -1,0 +1,6 @@
+complaint_id,customer_id,category,description,created_at,status
+CMP-001,1002,Billing,Charged extra for data usage,2025/09/25 10:45,Open
+CMP-002,1004,Network,Frequent call drops in Delhi,2025-09-25 09:30,Open
+CMP-003,1005,Recharge,Recharge failed; amount deducted,25-09-2025 14:00,Closed
+CMP-004,1002,Network,Slow 4G speed at night,2025-09-26 20:40,Open
+CMP-005,1003,Support,No response to complaint,2025-09-26 11:10,Open

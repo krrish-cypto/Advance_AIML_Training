@@ -1,0 +1,11 @@
+customer_id,category,created_at,status
+1002,Billing,2025-09-25 10:45,Open
+1004,Network,2025-09-25 09:30,Open
+1005,Recharge,2025-09-25 14:00,Closed
+1002,Network,2025-09-26 20:40,Open
+1003,Support,2025-09-26 11:10,Open
+1008,Billing,2025-09-27 09:30,Closed
+1010,Network,2025-09-27 15:00,Open
+1007,Support,2025-09-28 10:15,Closed
+1009,Network,2025-09-28 12:40,Open
+1006,Billing,2025-09-28 09:00,Closed

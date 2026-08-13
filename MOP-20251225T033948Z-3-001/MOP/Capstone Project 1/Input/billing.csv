@@ -1,0 +1,11 @@
+customer_id,tenure,contract_type,monthly_charges,churn
+1001,12,Month-to-Month,180,Yes
+1002,24,One Year,280,No
+1003,8,Month-to-Month,210,Yes
+1004,30,One Year,320,No
+1005,6,Month-to-Month,120,Yes
+1006,18,One Year,250,No
+1007,10,Month-to-Month,290,Yes
+1008,9,Month-to-Month,150,Yes
+1009,20,One Year,200,No
+1010,22,Two Year,260,No
